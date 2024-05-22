@@ -38,8 +38,7 @@ namespace GalaPresentation
                     var length = chunk.Count;
                     var layout = layouts[length + 1];
 
-                    Pres.Slides.AddSlide(Pres.Slides.Count + 1, layout);
-                    var slide = Pres.Slides[Pres.Slides.Count];
+                    var slide = Pres.Slides.AddSlide(Pres.Slides.Count + 1, layout);
                     slide.Shapes.Title.TextFrame.TextRange.Text = title;
 
                     List<PowerPoint.Shape> nameBoxes = new List<PowerPoint.Shape>();
@@ -55,8 +54,23 @@ namespace GalaPresentation
                     foreach (var winner in chunk)
                     {
                         var name = winner[0];
-                        var imagePath = picturesDir + "\\" + ((winner[1].Length > 4) ? "P00" : "P000") + winner[1] + ".jpg";
-                        slide.Shapes.AddPicture(imagePath, MsoTriState.msoFalse, MsoTriState.msoTrue, 0, 0);
+                        try
+                        {
+                            var imagePath = picturesDir + "\\" + winner[1] + ".jpg";
+                            slide.Shapes.AddPicture(imagePath, MsoTriState.msoFalse, MsoTriState.msoTrue, 0, 0);
+                        } catch
+                        {
+                            try
+                            {
+                                var imagePath = picturesDir + "\\" + ((winner[1].Length > 4) ? "P00" : "P000") + winner[1] + ".jpg";
+                                slide.Shapes.AddPicture(imagePath, MsoTriState.msoFalse, MsoTriState.msoTrue, 0, 0);
+                            }
+                            catch
+                            {
+                                MessageBox.Show("Il n'y a pas pas de photos disponible pour l'élève " + name + "(" + winner[1] + ")" + " pour " + title);
+                                break;
+                            }
+                        }
                         nameBoxes[j].TextFrame.TextRange.Text = name;
                         j++;
                     }
