@@ -12,31 +12,58 @@ using System.Collections;
 using Microsoft.Office.Core;
 using Microsoft.Office.Interop.PowerPoint;
 using static System.Windows.Forms.VisualStyles.VisualStyleElement.ProgressBar;
+using System.Text.RegularExpressions;
 
 namespace GalaPresentation
 {
     public partial class ThisAddIn
     {
         private PowerPoint.Presentation Pres;
+        int[] slidesLayouts = { 1, 2, 3, 4, 5, 6, 8, 10, 12, 15, 18, 21, 24, 27, 30 };
 
         private void generateFiles(Excel.Workbook workbook, string picturesDir)
         {
             var layouts = Pres.SlideMaster.CustomLayouts;
 
-            for (int i = 1; i <= workbook.Sheets.Count; i++)
+            var worksheet = workbook.Sheets[1] as Excel.Worksheet;
+            var usedRange = worksheet.UsedRange;
+
+            List<string[]> winners = extractData(usedRange);
+            List<List<string[]>> sortedWinners = new List<List<string[]>>();
+
+            foreach(var winner in winners)
             {
-                var worksheet = workbook.Sheets[i] as Excel.Worksheet;
-                var title = worksheet.Name;
-                var usedRange = worksheet.UsedRange;
+                var category = winner[3];
+                var categoryExists = false;
+                foreach(var winnerCat in sortedWinners)
+                {
+                    if (category.Equals(winnerCat[0][3]))
+                    {
+                        winnerCat.Add(winner);
+                        categoryExists = true;
+                        break;
+                    }
+                }
+                if (!categoryExists)
+                {
+                    var newCat = new List<string[]> { winner };
+                    sortedWinners.Add(newCat);
+                }
+            }
 
-                List<string[]> winners = extractData(usedRange);
+            foreach(var winnerCategory in sortedWinners)
+            {
+                var title = winnerCategory[0][2];
 
-                List<List<string[]>> chunks = sortIntoChunks(winners);
+                var sortOutput = sortIntoChunks(winnerCategory);
+                List<List<string[]>> chunks = sortOutput.Item1;
+                int largestSize = sortOutput.Item2;
+                int closestBiggerLayout = slidesLayouts.Aggregate((x,y)=>Math.Abs(x-largestSize) < Math.Abs(y-largestSize) ? x : y);
+                int index = Array.IndexOf(slidesLayouts, closestBiggerLayout) + 2;
 
                 foreach (var chunk in chunks)
                 {
-                    var length = chunk.Count;
-                    var layout = layouts[length + 1];
+                    var layout = layouts[index];
 
                     var slide = Pres.Slides.AddSlide(Pres.Slides.Count + 1, layout);
                     slide.Shapes.Title.TextFrame.TextRange.Text = title;
@@ -58,7 +85,8 @@ namespace GalaPresentation
                         {
                             var imagePath = picturesDir + "\\" + winner[1] + ".jpg";
                             slide.Shapes.AddPicture(imagePath, MsoTriState.msoFalse, MsoTriState.msoTrue, 0, 0);
-                        } catch
+                        }
+                        catch
                         {
                             try
                             {
@@ -118,20 +146,25 @@ namespace GalaPresentation
 
             for (int j = 1; j <= size; j++)
             {
-                var name = range.Cells[j, 1].Text as string;
-                var id = range.Cells[j, 2].Text as string;
-                if (name == "" || id == "") continue;
-                string[] data = { name, id };
+                var id = range.Cells[j, 1].Text as string;
+                var firstName = range.Cells[j, 2].Text as string;
+                var lastName = range.Cells[j, 3].Text as string;
+                var name = firstName + " " + lastName;
+                var title = range.Cells[j, 5].Text as string;
+                var category = range.Cells[j, 6].Text as string;
+                category = Regex.Replace(category, @"\s+", "");
+                if (name == "" || id == "" || title == "" || category == "") continue;
+                string[] data = { name, id, title, category };
                 output.Add(data);
             }
 
             return output;
         }
 
-        private List<List<string[]>> sortIntoChunks(List<string[]> array)
+        private (List<List<string[]>>, int largestSize) sortIntoChunks(List<string[]> array)
         {
             var size = array.Count;
-            var numChunks = Decimal.ToInt32(Decimal.Truncate((size - 1) / 20) + 1);
+            var numChunks = Decimal.ToInt32(Decimal.Truncate((size - 1) / 30) + 1);
             var minChunkSize = Decimal.ToInt32(Decimal.Truncate(size / numChunks));
             var numSmallChunks = numChunks * (minChunkSize + 1) - size;
 
@@ -150,8 +183,9 @@ namespace GalaPresentation
                     array.RemoveRange(0, minChunkSize + 1);
                 }
             }
+            int largestSize = numChunks == numSmallChunks ? minChunkSize : minChunkSize + 1;
 
-            return chunks;
+            return (chunks, largestSize);
         }
 
         private void ThisAddIn_Startup(object sender, System.EventArgs e)
