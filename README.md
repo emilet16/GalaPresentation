@@ -4,7 +4,7 @@ A PowerPoint add-in which can turn an Excel list of prize winners into a present
 
 Instructions:
 
-1- Open PptBase.pptx from the templates folder. You can customize the layouts as you want to change the look of the final presentation.
+1- Open PptBase.pptx from the templates folder. You can customize the layouts as you want to change the look of the final presentation. It is recommended to keep the same number of pictures per slide, as changing that requires changing the slidesLayout array in the code.
 
 2- Run the program from the Add-in tab in PowerPoint.
 
