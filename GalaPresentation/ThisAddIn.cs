@@ -58,17 +58,17 @@ namespace GalaPresentation
                 var sortOutput = sortIntoChunks(winnerCategory);
                 List<List<string[]>> chunks = sortOutput.Item1;
                 int largestSize = sortOutput.Item2;
-                int closestBiggerLayout = slidesLayouts.Aggregate((x,y)=>Math.Abs(x-largestSize) < Math.Abs(y-largestSize) ? x : y);
-                int index = Array.IndexOf(slidesLayouts, closestBiggerLayout) + 2;
+                int closestBiggerLayout = slidesLayouts.Aggregate((x,y)=>(Math.Abs(x-largestSize) < Math.Abs(y-largestSize))&&(x>=largestSize) ? x : y);
+                int index = Array.IndexOf(slidesLayouts, closestBiggerLayout) + 1;
 
                 foreach (var chunk in chunks)
                 {
                     var layout = layouts[index];
 
                     var slide = Pres.Slides.AddSlide(Pres.Slides.Count + 1, layout);
-                    slide.Shapes.Title.TextFrame.TextRange.Text = title;
 
                     List<PowerPoint.Shape> nameBoxes = new List<PowerPoint.Shape>();
+
                     foreach (PowerPoint.Shape shape in slide.Shapes)
                     {
                         if (shape.PlaceholderFormat.Type == PowerPoint.PpPlaceholderType.ppPlaceholderBody)
@@ -77,7 +77,9 @@ namespace GalaPresentation
                         }
                     }
 
-                    int j = 0;
+                    nameBoxes[0].TextFrame.TextRange.Text = title;
+
+                    int j = 1;
                     foreach (var winner in chunk)
                     {
                         var name = winner[0];
