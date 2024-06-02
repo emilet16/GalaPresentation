@@ -98,7 +98,7 @@ namespace GalaPresentation
                             catch
                             {
                                 MessageBox.Show("Il n'y a pas pas de photos disponible pour l'élève " + name + "(" + winner[1] + ")" + " pour " + title);
-                                break;
+                                continue;
                             }
                         }
                         nameBoxes[j].TextFrame.TextRange.Text = name;
@@ -149,12 +149,15 @@ namespace GalaPresentation
             for (int j = 1; j <= size; j++)
             {
                 var id = range.Cells[j, 1].Text as string;
+                id = Regex.Replace(id, @"\s+", "");
+                int res;
+                if (!Int32.TryParse(id, out res)) continue;
                 var firstName = range.Cells[j, 2].Text as string;
                 var lastName = range.Cells[j, 3].Text as string;
                 var name = firstName + " " + lastName;
                 var title = range.Cells[j, 5].Text as string;
-                var category = range.Cells[j, 6].Text as string;
-                category = Regex.Replace(category, @"\s+", "");
+                var category = range.Cells[j, 6] as string;
+                category = Regex.Replace(title+category, @"\s+", "");
                 if (name == "" || id == "" || title == "" || category == "") continue;
                 string[] data = { name, id, title, category };
                 output.Add(data);
