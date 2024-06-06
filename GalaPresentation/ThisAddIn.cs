@@ -13,6 +13,7 @@ using Microsoft.Office.Core;
 using Microsoft.Office.Interop.PowerPoint;
 using static System.Windows.Forms.VisualStyles.VisualStyleElement.ProgressBar;
 using System.Text.RegularExpressions;
+using System.Drawing;
 
 namespace GalaPresentation
 {
@@ -23,6 +24,9 @@ namespace GalaPresentation
 
         private void generateFiles(Excel.Workbook workbook, string picturesDir)
         {
+            var noPicturePath = Path.GetTempPath() + "no picture.bmp";
+            Properties.Resources.nopicture.Save(noPicturePath);
+
             var layouts = Pres.SlideMaster.CustomLayouts;
 
             var worksheet = workbook.Sheets[1] as Excel.Worksheet;
@@ -98,7 +102,7 @@ namespace GalaPresentation
                             catch
                             {
                                 MessageBox.Show("Il n'y a pas pas de photos disponible pour l'élève " + name + "(" + winner[1] + ")" + " pour " + title);
-                                continue;
+                                slide.Shapes.AddPicture(noPicturePath, MsoTriState.msoFalse, MsoTriState.msoTrue, 0, 0);
                             }
                         }
                         nameBoxes[j].TextFrame.TextRange.Text = name;
