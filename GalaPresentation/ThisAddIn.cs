@@ -145,7 +145,6 @@ namespace GalaPresentation
         {
             List<string[]> output = new List<string[]>();
             var size = range.Rows.Count;
-
             for (int j = 1; j <= size; j++)
             {
                 var id = range.Cells[j, 1].Text as string;
@@ -156,7 +155,7 @@ namespace GalaPresentation
                 var lastName = range.Cells[j, 3].Text as string;
                 var name = firstName + " " + lastName;
                 var title = range.Cells[j, 5].Text as string;
-                var category = range.Cells[j, 6] as string;
+                var category = range.Cells[j, 6].Text as string;
                 category = Regex.Replace(title+category, @"\s+", "");
                 if (name == "" || id == "" || title == "" || category == "") continue;
                 string[] data = { name, id, title, category };
